@@ -1,5 +1,9 @@
 function createPLXFiles(sessionConf,varargin)
 %Function to create a PLX file in the correct format
+%Will first loop through ALL tetrode channels, then will loop through all
+%50 microns
+%Tetrode channels are named as T01, T02... but 50micron is channel name,
+%i.e. ch78
 
 % [] input for artifact thresh
     %Start the stop watch
@@ -23,8 +27,15 @@ function createPLXFiles(sessionConf,varargin)
     spikeParameterString = sprintf('WL%02d_PL%02d_DT%02d', sessionConf.waveLength,...
        sessionConf.peakLoc, sessionConf.deadTime);
 
+   %valid tetrodes output is the tetrode number
     validTetrodes = find(any(sessionConf.validMasks,2).*sessionConf.chMap(:,1));
     fullSevFiles = getChFileMap(leventhalPaths.channels);
+    
+    %valid masks array for 50 micron single wires, output is actual channel
+    %number
+    valid50micron = sessionConf.singleWires.*sessionConf.chMap(:,2:5);
+    valid50micron = reshape(valid50micron,size(valid50micron,1).*4,1);
+    valid50micron = valid50micron(valid50micron~=0); %remove all 0s
     
     stats = {};
     %Loop through the valid tetrodes to get the name, channel, valid mask,
@@ -63,7 +74,58 @@ function createPLXFiles(sessionConf,varargin)
     end
     %Display the number of spikes found
     echoStats(stats);
+
+
+%Loop through valid single 50micron wires.
+ for ii=1:length(valid50micron)
+    %Filter the data and cure artifacts
+    header = getSEVHeader(fullSevFiles{valid50micron(ii)});
+    dataLength = (header.fileSizeBytes - header.dataStartByte) / header.sampleWidthBytes;
+    data = zeros(1,dataLength);
+    data = read_tdt_sev(fullSevFiles{valid50micron(ii)});
+    disp('Bandpass filtering...');
+    %Filter data, bandpass ~240Hz and ~2.4kHz
+    [b,a] = butter(4, [0.02 0.2]);
+    data = filtfilt(b,a,double(data));
+    %valid mask is kind of redundant here, zeros already set above
+    disp('Fixing high amplitude artifacts...');
+    data = artifactThresh(double(data),[1 0 0 0],threshArtifact);
+    
+    spikeExtractPath = fullfile(leventhalPaths.graphs,'spikeExtract');
+    if ~exist(spikeExtractPath,'dir')
+       mkdir(spikeExtractPath);
+    end
+    
+    spikeProcessedPath = fullfile(leventhalPaths.processed,'Processed');
+    if ~exist(spikeProcessedPath,'dir')
+       mkdir(spikeProcessedPath);
+    end 
+        
+    locs = getSpikeLocations(data,[1 0 0 0],sessionConf.Fs,'onlyGoing',onlyGoing,...
+        'saveDir',spikeExtractPath,'savePrefix',num2str(valid50micron(ii)));
+
+    PLXfn = fullfile(leventhalPaths.processed,[sessionConf.sessionName,...
+         '_',num2str(valid50micron(ii)),'_',spikeParameterString,'.plx']);
+        
+    PLXid = makePLXInfo(PLXfn,sessionConf,[valid50micron(ii)],length(data)); %pass in such that length(tetrodeChannels)=1
+    
+    makePLXChannelHeader(PLXid,sessionConf,[valid50micron(ii)],num2str(valid50micron(ii)));
+        
+        
+    disp('Extracting waveforms...');
+    waveforms = extractWaveforms(data,locs,sessionConf.peakLoc,...
+         sessionConf.waveLength);
+    disp('Writing waveforms to PLX file...');
+    writePLXdatablock(PLXid,waveforms,locs);   
+    
+    stats{ii,1} = num2str(valid50micron(ii));
+    stats{ii,2} = length(locs);
+    end
+    
+    echoStats(stats);
 end
+
+
 
 function echoStats(stats)
 %Function to display to the user the number of spikes found
@@ -128,6 +190,8 @@ end
 
 function PLXid = makePLXInfo(PLXfn,sessionConf,tetrodeChannels,dataLength)
 %Function to prepare data to make a header in the PLX file
+%To make 50 MICRON wire, you need to pass in just a single number for
+%tetrodeChannel, such that Trodalness = 1. 
     sessionDateStr = sessionConf.sessionName(7:14);
     sessionDateVec = datevec(sessionDateStr, 'yyyymmdd');
 

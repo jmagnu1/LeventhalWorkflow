@@ -23,12 +23,21 @@ sessionConf.sessionName = sessionName;
 chMap = sql_getChannelMap(sessionConf.ratID);
 sessionConf.chMap = chMap.chMap;
 sessionConf.tetrodeNames = chMap.tetNames;
+
+%Get tetrode validMasks, lfpChannels
 try
     sessionConf.validMasks = sql_getAllTetChannels(sessionConf.sessionName);
     sessionConf.lfpChannels = sql_getLFPChannels(sessionConf.sessionName);
+    sessionConf.singleWireIndex = sql_getSingleWires(sessionConf.sessionName); 
 catch
     disp('No tetrode session found: validMasks and lfpChannels not valid');
 end
+
+%Code that sorts the initial validMasks into tetrode and single wire
+%matrices
+temp = sessionConf.singleWireIndex*ones(1,4)
+sessionConf.singleWires = sessionConf.validMasks.*temp
+sessionConf.validMasks = sessionConf.validMasks.*(1-temp)
 
 if exist('nasPath','var')
     sessionConf.nasPath = nasPath;
