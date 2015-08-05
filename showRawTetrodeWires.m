@@ -6,6 +6,9 @@ function showRawTetrodeWires(sessionConf,varargin)
 %   sessionConf
 %   optional: numSegments -- the number of segments
 %             segmentLength -- length of segment
+%             'validMask' -- only plot the wires that are valid
+%             tWindow - [tStart,tEnd] of plot
+% Ex: showRawTetrodeWires(sessionConf, 'validMask',0,'tWindow',[5,6])
 %
 %Outputs:
 %   none
@@ -14,13 +17,19 @@ function showRawTetrodeWires(sessionConf,varargin)
 
     numSegments = 3;
     segmentLength = 5e4;
-
+    validMaskSwitch = 0;
+    tWindow = 0 ;
     for iarg = 1 : 2 : nargin - 1
         switch varargin{iarg}
-            case 'numSegments',
+            case 'numSegments'
                 numSegments = varargin{iarg + 1};
             case 'segmentLength'
                 segmentLength = varargin{iarg + 1};
+            case 'tWindow'
+                tWindow = varargin{iarg +1};
+                numSegments = 1;
+            case 'validMask'
+                validMaskSwitch = 1;
         end
     end
 
@@ -28,8 +37,16 @@ function showRawTetrodeWires(sessionConf,varargin)
     leventhalPaths = buildLeventhalPaths(sessionConf);
     fullSevFiles = getChFileMap(leventhalPaths.channels);
     disp(['Found ',num2str(length(fullSevFiles)),' SEV files...']);
-    validTetrodes = sessionConf.chMap(:,1);
-
+    
+    if validMaskSwitch == 0
+        validTetrodes = sessionConf.chMap(:,1);
+    else
+        %Combine both singlesWires and validTetrodes into list of valid
+        %ports
+        validTetrodes = [find(any(sessionConf.validMasks,2).*sessionConf.chMap(:,1));...
+             find(any(sessionConf.singleWires,2).*sessionConf.chMap(:,1))];
+    end
+    
     %create a path for the figure to be saved
     figurePath = fullfile(leventhalPaths.graphs,'rawTetrodeWires');
     if ~isdir(figurePath)
@@ -58,35 +75,57 @@ function showRawTetrodeWires(sessionConf,varargin)
                 %Read in data from eat SEV file
                 [sev,header] = read_tdt_sev(tetrodeFilenames{iCh});
                 %find the start and end points for the graph
-                segmentStart = round(length(sev)/(numSegments+1)*iSeg);
-                segmentEnd = segmentStart + segmentLength;
+                if tWindow == 0
+                    segmentStart = round(length(sev)/(numSegments+1)*iSeg);
+                    segmentEnd = segmentStart + segmentLength;
+                else    
+                    segmentStart = round(sessionConf.Fs*tWindow(1));
+                    segmentEnd   = round(sessionConf.Fs*tWindow(2));
+                end
                 %create a subplot where raw data is on the left side
                 hsRaw(iCh) = subplot(4,2,iCh*2-1);
                 %plot the SEV data
-                plot(sev(segmentStart:segmentEnd));
+               
                 %Title the graph
                 title([tetrodeName,'w',num2str(iCh),', ',num2str(segmentStart),...
                     ':',num2str(segmentEnd),' raw']);
-                xlim([0 segmentLength]);
+                if tWindow ==0
+                    plot(sev(segmentStart:segmentEnd));
+                    xlim([0 segmentLength]);xlabel('samples');
+                else
+                    plot(linspace(segmentStart./sessionConf.Fs, segmentEnd./sessionConf.Fs,(tWindow(2)-tWindow(1)).*sessionConf.Fs),...
+                            sev(segmentStart:segmentEnd-1))
+                    xlim([tWindow(1) tWindow(2)]);xlabel('time(s)');
+                end
                 ylabel('uV');
-                xlabel('samples');
+                
                 %Put the subplots for filtered data on the right side
                 hsHp(iCh) = subplot(4,2,iCh*2);
                 %Plot data filtered through a high pass filter
-                plot(wavefilter(sev(segmentStart:segmentEnd),6));
+                
+                
                 %Name the graph
                 title([tetrodeName,'w',num2str(iCh),', ',num2str(segmentStart),...
                     ':',num2str(segmentEnd),' raw']);
-                ylim([-500 500]);
-                xlim([0 segmentLength]);
-                ylabel('uV');
-                xlabel('samples');
+                ylim([-500 500]);ylabel('uV');
+                if tWindow ==0
+                    plot(wavefilter(sev(segmentStart:segmentEnd),6));
+                    xlim([0 segmentLength]);xlabel('samples');
+                else
+                    plot(linspace(segmentStart./sessionConf.Fs, segmentEnd./sessionConf.Fs,(tWindow(2)-tWindow(1)).*sessionConf.Fs),...
+                        wavefilter(sev(segmentStart:segmentEnd-1),6))
+                    xlim([tWindow(1) tWindow(2)]);xlabel('time(s)');
+                end
             end
             linkaxes(hsRaw,'x');
             linkaxes(hsHp,'x');
-
-            saveas(h,fullfile(figurePath,[tetrodeName,'_',num2str(segmentStart),...
+            if tWindow ==0
+                saveas(h,fullfile(figurePath,[tetrodeName,'_',num2str(segmentStart),...
                     '-',num2str(segmentEnd)]),'pdf');
+            else
+                saveas(h,fullfile(figurePath,[tetrodeName,'_',num2str(tWindow(1)),...
+                    '-',num2str(tWindow(2))]),'pdf');
+            end
             close(h);
         end
     end

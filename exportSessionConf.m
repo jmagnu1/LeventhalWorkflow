@@ -5,7 +5,17 @@ function sessionConf = exportSessionConf(sessionName,varargin)
 %   sessionName : ex. R0036_20150225a
 %   varargin, saveDir: where you want this config file save, right now the
 %   extractSpikesTDT script prompts for the location of this file
+%
+%sessionConf will contain sessionName, chMap, tetrodeNames, validMasks,
+%lfpChannels,singleWireIndex,nasPath
+%by Default, nasPath will be path to nas unless you change it through
+%varargin to reflect a local path on  your computer
 
+%default settings
+sessionConf = struct;
+sessionConf.waveLength = 48; %~2ms
+sessionConf.peakLoc = 16;  %.65 ms
+ %see getSpikeLocations.m
 
 for iarg = 1 : 2 : nargin - 1
     switch varargin{iarg}
@@ -13,11 +23,15 @@ for iarg = 1 : 2 : nargin - 1
             sessionConfPath = varargin{iarg + 1};
         case 'nasPath'
             nasPath = varargin{iarg + 1};
+        case 'peakLoc'
+            sessionConf.peakLoc = varargin{iarg+1};
+        case 'waveLength'    
+            sessionConf.waveLength = varargin{iarg+1};
     end
 end
 
 %set up fields of struct
-sessionConf = struct;
+
 sessionConf.sessionName = sessionName;
 [~,sessionConf.ratID] = sql_getSubjectFromSession(sessionName);
 chMap = sql_getChannelMap(sessionConf.ratID);
@@ -55,9 +69,9 @@ else
     sessionConf.Fs = header.Fs;
 end
 
-sessionConf.waveLength = 48;
-sessionConf.peakLoc = 16;
-sessionConf.deadTime = round(sessionConf.Fs/1000); %see getSpikeLocations.m
+sessionConf.deadTime = round(sessionConf.Fs/1000);
+%add nexPath(str pointing to combined.nex location) to sessionconf
+sessionConf.nexPath = fullfile(leventhalPaths.processed,'Processed',[sessionConf.sessionName '_combined.nex'])
 
 if exist('sessionConfPath','var')
     filename = ['session_conf_',sessionName,'.mat'];
