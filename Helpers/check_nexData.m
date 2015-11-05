@@ -1,4 +1,4 @@
-function nexDataCheck(nexData)
+function check_nexData(nexData)
 
 disp(char(repmat(46,1,20)));
 for ii=1:length(nexData.events)

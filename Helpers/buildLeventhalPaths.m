@@ -1,12 +1,12 @@
 function leventhalPaths = buildLeventhalPaths(sessionConf,varargin)
 
 leventhalPaths = {};
-ratID = sessionConf.sessionName(1:5);
+subjectID = sessionConf.sessionName(1:5);
 
 %create files within the path for rawdata, processed, graphs, and channels
-leventhalPaths.rawdata = fullfile(sessionConf.nasPath,ratID,[ratID,'-rawdata'],sessionConf.sessionName);
-leventhalPaths.processed = fullfile(sessionConf.nasPath,ratID,[ratID,'-processed'],sessionConf.sessionName);
-leventhalPaths.graphs = fullfile(sessionConf.nasPath,ratID,[ratID,'-graphs'],sessionConf.sessionName);
+leventhalPaths.rawdata = fullfile(sessionConf.nasPath,subjectID,[subjectID,'-rawdata'],sessionConf.sessionName);
+leventhalPaths.processed = fullfile(sessionConf.nasPath,subjectID,[subjectID,'-processed'],sessionConf.sessionName);
+leventhalPaths.graphs = fullfile(sessionConf.nasPath,subjectID,[subjectID,'-graphs'],sessionConf.sessionName);
 leventhalPaths.channels = fullfile(leventhalPaths.rawdata,sessionConf.sessionName);
 leventhalPaths.finished = fullfile(leventhalPaths.processed,[sessionConf.sessionName,'_finished']);
 
