@@ -156,7 +156,7 @@ function data = prepSEVData(filenames,validMask,threshArtifacts)
         [data(ii,:),~] = read_tdt_sev(filenames{ii});
     end
     disp('Bandpass filtering...');
-    %Filter data, bandpass ~240Hz and ~2.4kHz
+    %Filter data
     [b,a] = butter(4, [0.02 0.5]);
     for ii=1:size(data,1)
         data(ii,:) = filtfilt(b,a,double(data(ii,:)));
