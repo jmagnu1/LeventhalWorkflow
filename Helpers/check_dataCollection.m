@@ -1,6 +1,8 @@
 function check_dataCollection(nasPath,subjectID,varargin)
     % either enter start and end sessions, or just the single session to check
     % usage: check_dataCollection('/Volumes/RecordingsLeventhal2/ChoiceTask','R0088','20151027a','20151102a');
+    %[] tally missing files
+    
     rawdata = fullfile(nasPath,subjectID,[subjectID,'-rawdata']);
     folders = dir(rawdata);
 
@@ -12,6 +14,7 @@ function check_dataCollection(nasPath,subjectID,varargin)
 
     display = false;
     disp(char(repmat(46,1,20)));
+    clc;
     for ii=1:length(folders)
         if strcmp(folders(ii).name,[subjectID,'_',sessionStart])
             display = true;
@@ -41,7 +44,6 @@ function check_dataCollection(nasPath,subjectID,varargin)
         if isempty(sessionContents)
             formatDisp(false,'Sleep',0,tab);
         else
-            disp([tabChars(tab-1),'---']);
             disp([tabChars(tab-1),fullfile(foldersName,'sleep')]);
             searchFor('log',rawdata,fullfile(foldersName,'sleep'),tab);
             searchFor('tsq',rawdata,fullfile(foldersName,'sleep'),tab);
@@ -79,9 +81,9 @@ end
 
 function formatDisp(found,label,bytes,tab)
     if found
-        disp([tabChars(tab),upper(label),' (',formatBytes(bytes),')']);
+        disp([tabChars(tab),'[X] ',upper(label),' (',formatBytes(bytes),')']);
     else
-        disp([tabChars(tab),'!!! ',upper(label)]);
+        disp([tabChars(tab),'[ ] ',upper(label)]);
     end
 end
 
