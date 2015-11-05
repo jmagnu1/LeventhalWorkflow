@@ -6,7 +6,7 @@ function check_dataCollection(nasPath,subjectID,varargin)
 
     sessionStart = varargin{1};
     sessionEnd = '';
-    if nargin == 2
+    if length(varargin) == 2
         sessionEnd = varargin{2};
     end
 
@@ -23,23 +23,39 @@ function check_dataCollection(nasPath,subjectID,varargin)
         foldersName = folders(ii).name;
         disp(foldersName);
 
-        searchFor('log',rawdata,foldersName);
-        searchFor('tsq',rawdata,foldersName);
-        searchFor('tev',rawdata,foldersName);
-        searchFor('avi',rawdata,foldersName);
+        tab = 1;
+        searchFor('log',rawdata,foldersName,tab);
+        searchFor('tsq',rawdata,foldersName,tab);
+        searchFor('tev',rawdata,foldersName,tab);
+        searchFor('avi',rawdata,foldersName,tab);
         
-        sessionContents = dir(fullfile(rawdata,foldersName,'sleep'));
+        sessionContents = dir(fullfile(rawdata,foldersName,foldersName));
         if isempty(sessionContents)
-            formatDisp(false,'Sleep Folder');
+            formatDisp(false,'Ephys',0,tab);
         else
-            disp('-- Sleep Folder');
-            searchFor('log',rawdata,fullfile(foldersName,'sleep'));
-            searchFor('tsq',rawdata,fullfile(foldersName,'sleep'));
-            searchFor('tev',rawdata,fullfile(foldersName,'sleep'));
-            searchFor('avi',rawdata,fullfile(foldersName,'sleep'));
+            formatDisp(true,'Ephys',sum([sessionContents(:).bytes]),tab);
         end
         
-        disp('');
+        tab = 2;
+        sessionContents = dir(fullfile(rawdata,foldersName,'sleep'));
+        if isempty(sessionContents)
+            formatDisp(false,'Sleep',0,tab);
+        else
+            disp([tabChars(tab-1),'---']);
+            disp([tabChars(tab-1),fullfile(foldersName,'sleep')]);
+            searchFor('log',rawdata,fullfile(foldersName,'sleep'),tab);
+            searchFor('tsq',rawdata,fullfile(foldersName,'sleep'),tab);
+            searchFor('tev',rawdata,fullfile(foldersName,'sleep'),tab);
+            searchFor('avi',rawdata,fullfile(foldersName,'sleep'),tab);
+            sessionContents = dir(fullfile(rawdata,foldersName,'sleep',[foldersName,'_sleep']));
+            if isempty(sessionContents)
+                formatDisp(false,'Sleep Ephys',0,tab);
+            else
+                formatDisp(true,'Sleep Ephys',sum([sessionContents(:).bytes]),tab);
+            end
+        end
+        
+        fprintf('\n')
 
         if ~isempty(sessionEnd)
             if strcmp(folders(ii).name,[subjectID,'_',sessionEnd])
@@ -52,19 +68,23 @@ function check_dataCollection(nasPath,subjectID,varargin)
     disp(char(repmat(46,1,20)));
 end
 
-function searchFor(searchTerm,rawdata,foldersName)
+function searchFor(searchTerm,rawdata,foldersName,tab)
     sessionContents = dir(fullfile(rawdata,foldersName,['*.',searchTerm]));
     if isempty(sessionContents)
-        formatDisp(false,searchTerm);
+        formatDisp(false,searchTerm,0,tab);
     else
-        formatDisp(true,searchTerm,sessionContents.bytes);
+        formatDisp(true,searchTerm,sessionContents(1).bytes,tab);
     end
 end
 
-function formatDisp(found,label,bytes)
+function formatDisp(found,label,bytes,tab)
     if found
-        disp(['Found ',upper(label),': ',formatBytes(bytes)]);
+        disp([tabChars(tab),upper(label),' (',formatBytes(bytes),')']);
     else
-        disp(['!!! ',upper(label),' Not Found']);
+        disp([tabChars(tab),'!!! ',upper(label)]);
     end
+end
+
+function t = tabChars(tab)
+    t = char(repmat(32,1,tab*4));
 end
