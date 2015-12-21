@@ -43,15 +43,15 @@ try
     sessionConf.validMasks = sql_getAllTetChannels(sessionConf.sessionName);
     sessionConf.lfpChannels = sql_getLFPChannels(sessionConf.sessionName);
     sessionConf.singleWireIndex = sql_getSingleWires(sessionConf.sessionName); 
+    
+    %Code that sorts the initial validMasks into tetrode and single wire
+    %matrices
+    temp = sessionConf.singleWireIndex*ones(1,4);
+    sessionConf.singleWires = sessionConf.validMasks.*temp;
+    sessionConf.validMasks = sessionConf.validMasks.*(1-temp);
 catch
     disp('No tetrode session found: validMasks and lfpChannels not valid');
 end
-
-%Code that sorts the initial validMasks into tetrode and single wire
-%matrices
-temp = sessionConf.singleWireIndex*ones(1,4)
-sessionConf.singleWires = sessionConf.validMasks.*temp
-sessionConf.validMasks = sessionConf.validMasks.*(1-temp)
 
 if exist('nasPath','var')
     sessionConf.nasPath = nasPath;
@@ -71,7 +71,7 @@ end
 
 sessionConf.deadTime = round(sessionConf.Fs/1000);
 %add nexPath(str pointing to combined.nex location) to sessionconf
-sessionConf.nexPath = fullfile(leventhalPaths.processed,'Processed',[sessionConf.sessionName '_combined.nex'])
+sessionConf.nexPath = fullfile(leventhalPaths.processed,'Processed',[sessionConf.sessionName '_combined.nex']);
 
 if exist('sessionConfPath','var')
     filename = ['session_conf_',sessionName,'.mat'];

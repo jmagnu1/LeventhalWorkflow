@@ -85,7 +85,7 @@ function createPLXFiles(sessionConf,varargin)
     data = read_tdt_sev(fullSevFiles{valid50micron(ii)});
     disp('Bandpass filtering...');
     %Filter data, bandpass ~240Hz and ~2.4kHz
-    [b,a] = butter(4, [0.02 0.2]);
+    [b,a] = butter(4, [0.02 0.5]);
     data = filtfilt(b,a,double(data));
     %valid mask is kind of redundant here, zeros already set above
     disp('Fixing high amplitude artifacts...');
@@ -156,8 +156,8 @@ function data = prepSEVData(filenames,validMask,threshArtifacts)
         [data(ii,:),~] = read_tdt_sev(filenames{ii});
     end
     disp('Bandpass filtering...');
-    %Filter data, bandpass ~240Hz and ~2.4kHz
-    [b,a] = butter(4, [0.02 0.2]);
+    %Filter data
+    [b,a] = butter(4, [0.02 0.5]);
     for ii=1:size(data,1)
         data(ii,:) = filtfilt(b,a,double(data(ii,:)));
     end
