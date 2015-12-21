@@ -8,6 +8,7 @@ leventhalPaths.rawdata = fullfile(sessionConf.nasPath,ratID,[ratID,'-rawdata'],s
 leventhalPaths.processed = fullfile(sessionConf.nasPath,ratID,[ratID,'-processed'],sessionConf.sessionName);
 leventhalPaths.graphs = fullfile(sessionConf.nasPath,ratID,[ratID,'-graphs'],sessionConf.sessionName);
 leventhalPaths.channels = fullfile(leventhalPaths.rawdata,sessionConf.sessionName);
+leventhalPaths.videos =  fullfile(sessionConf.nasPath,ratID,[ratID,'-videos'],sessionConf.sessionName);
 
 % pass in makeFolders (ie. {'rawData'})
 if nargin == 2

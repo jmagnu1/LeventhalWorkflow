@@ -49,22 +49,22 @@ function createPLXFiles(sessionConf,varargin)
         tetrodeFilenames = fullSevFiles(tetrodeChannels);
         
         %Filter the data and cure artifacts
-        data = prepSEVData(tetrodeFilenames,tetrodeValidMask,threshArtifact);
+        [data,rawData] = prepSEVData(tetrodeFilenames,tetrodeValidMask,threshArtifact);
         %Get the locations of the spikes
         spikeExtractPath = fullfile(leventhalPaths.graphs,'spikeExtract');
         if ~exist(spikeExtractPath,'dir')
             mkdir(spikeExtractPath);
         end
-        locs = getSpikeLocationsAmpThresh(data,tetrodeValidMask,sessionConf.Fs,'onlyGoing',onlyGoing,...
+        locs = getSpikeLocationsAmpThresh(data,tetrodeValidMask,sessionConf.Fs,rawData,'onlyGoing',onlyGoing,...
             'saveDir',spikeExtractPath,'savePrefix',tetrodeName);
         
         PLXfn = fullfile(leventhalPaths.processed,[sessionConf.sessionName,...
             '_',tetrodeName,'_',spikeParameterString,'.plx']);
-        PLXid = makePLXInfo(PLXfn,sessionConf,tetrodeChannels,length(data));
+        PLXid = makePLXInfo(PLXfn,sessionConf,tetrodeChannels,length(data),10*sessionConf.Fs); %10*Fs is upsampled frequency
         makePLXChannelHeader(PLXid,sessionConf,tetrodeChannels,tetrodeName);
         
         disp('Extracting waveforms...');
-        waveforms = extractWaveforms(data,locs,sessionConf.peakLoc,...
+        [waveforms,loc] = SINCextractWaveforms(data,locs,sessionConf.peakLoc,...
             sessionConf.waveLength);
         disp('Writing waveforms to PLX file...');
         writePLXdatablock(PLXid,waveforms,locs);
@@ -81,12 +81,15 @@ function createPLXFiles(sessionConf,varargin)
     %Filter the data and cure artifacts
     header = getSEVHeader(fullSevFiles{valid50micron(ii)});
     dataLength = (header.fileSizeBytes - header.dataStartByte) / header.sampleWidthBytes;
-    data = zeros(1,dataLength);
-    data = read_tdt_sev(fullSevFiles{valid50micron(ii)});
-    disp('Bandpass filtering...');
+    rawData = zeros(1,dataLength);
+    rawData = read_tdt_sev(fullSevFiles{valid50micron(ii)});
+    disp('Wavelet filtering...');
     %Filter data, bandpass ~240Hz and ~2.4kHz
-    [b,a] = butter(4, [0.02 0.2]);
-    data = filtfilt(b,a,double(data));
+    %[b,a] = butter(2, [0.02 0.6]);
+    %data = filtfilt(b,a,double(rawData));
+    
+    data = wavefilter(double(rawData),5);
+    %disp('Sinc Interpolation...')
     %valid mask is kind of redundant here, zeros already set above
     disp('Fixing high amplitude artifacts...');
     data = artifactThreshAmp(double(data),[1 0 0 0],threshArtifact);
@@ -101,19 +104,19 @@ function createPLXFiles(sessionConf,varargin)
        mkdir(spikeProcessedPath);
     end 
         
-    locs = getSpikeLocationsAmpThresh(data,[1 0 0 0],sessionConf.Fs,'onlyGoing',onlyGoing,...
+    locs = getSpikeLocationsAmpThresh(data,[1 0 0 0],sessionConf.Fs,rawData,'onlyGoing',onlyGoing,...
         'saveDir',spikeExtractPath,'savePrefix',num2str(valid50micron(ii)));
 
     PLXfn = fullfile(leventhalPaths.processed,[sessionConf.sessionName,...
          '_',num2str(valid50micron(ii)),'_',spikeParameterString,'.plx']);
         
-    PLXid = makePLXInfo(PLXfn,sessionConf,[valid50micron(ii)],length(data)); %pass in such that length(tetrodeChannels)=1
+    PLXid = makePLXInfo(PLXfn,sessionConf,[valid50micron(ii)],length(data),10*sessionConf.Fs); %pass in such that length(tetrodeChannels)=1
     
     makePLXChannelHeader(PLXid,sessionConf,[valid50micron(ii)],num2str(valid50micron(ii)));
         
         
     disp('Extracting waveforms...');
-    waveforms = extractWaveforms(data,locs,sessionConf.peakLoc,...
+    [waveforms,locs] = SINCextractWaveforms(data,locs,sessionConf.peakLoc,...
          sessionConf.waveLength);
     disp('Writing waveforms to PLX file...');
     writePLXdatablock(PLXid,waveforms,locs);   
@@ -142,9 +145,10 @@ function echoStats(stats)
     disp(char(repmat(46,1,20)));
 end
 
-function data = prepSEVData(filenames,validMask,threshArtifacts)
+function [data,rawData] = prepSEVData(filenames,validMask,threshArtifacts)
     header = getSEVHeader(filenames{1});
     dataLength = (header.fileSizeBytes - header.dataStartByte) / header.sampleWidthBytes;
+    rawData = zeros(length(validMask),dataLength);
     data = zeros(length(validMask),dataLength);
     for ii=1:length(filenames)
         if ~validMask(ii)
@@ -153,13 +157,15 @@ function data = prepSEVData(filenames,validMask,threshArtifacts)
         end
         disp(['Reading ',filenames{ii}]);
         %Read in the data from the SEV files
-        [data(ii,:),~] = read_tdt_sev(filenames{ii});
+        [rawData(ii,:),~] = read_tdt_sev(filenames{ii});
     end
-    disp('Bandpass filtering...');
+    disp('Wavelet filtering...');
     %Filter data, bandpass ~240Hz and ~2.4kHz
-    [b,a] = butter(4, [0.02 0.2]);
-    for ii=1:size(data,1)
-        data(ii,:) = filtfilt(b,a,double(data(ii,:)));
+    %[b,a] = butter(4, [0.02 0.2]);
+    
+    for ii=1:size(rawData,1)
+       % data(ii,:) = filtfilt(b,a,double(rawData(ii,:)));
+           data(ii,:) = wavefilter(double(rawData(ii,:)),5);
     end
     %valid mask is kind of redundant here, zeros already set above
     disp('Fixing high amplitude artifacts...');
@@ -181,14 +187,14 @@ function makePLXChannelHeader(PLXid,sessionConf,tetrodeChannels,tetrodeName)
         chInfo.filter    = 0;    % not sure what this is; Alex had it set to zero
         chInfo.thresh    = 0; % does this even matter anywhere?
         chInfo.numUnits  = 0;    % no sorted units
-        chInfo.sortWidth = sessionConf.waveLength;
+        chInfo.sortWidth = 10*(sessionConf.waveLength-1)+1; %upsampled wave length
         chInfo.comment   = 'created with Spikey, makePLXChannelHeader';
 
         writePLXChanHeader(PLXid, chInfo);
     end
 end
 
-function PLXid = makePLXInfo(PLXfn,sessionConf,tetrodeChannels,dataLength)
+function PLXid = makePLXInfo(PLXfn,sessionConf,tetrodeChannels,dataLength,Fs)
 %Function to prepare data to make a header in the PLX file
 %To make 50 MICRON wire, you need to pass in just a single number for
 %tetrodeChannel, such that Trodalness = 1. 
@@ -196,12 +202,12 @@ function PLXid = makePLXInfo(PLXfn,sessionConf,tetrodeChannels,dataLength)
     sessionDateVec = datevec(sessionDateStr, 'yyyymmdd');
 
     plxInfo.comment    = '';
-    plxInfo.ADFs       = sessionConf.Fs; % record the upsampled Fs as the AD freq for timestamps
+    plxInfo.ADFs       = Fs; % record the upsampled Fs as the AD freq for timestamps
     plxInfo.numWires   = length(tetrodeChannels);
     plxInfo.numEvents  = 0;
     plxInfo.numSlows   = 0;
-    plxInfo.waveLength = sessionConf.waveLength;
-    plxInfo.peakLoc    = sessionConf.peakLoc;
+    plxInfo.waveLength = 10*(sessionConf.waveLength-1)+1; %upsampled wavelength
+    plxInfo.peakLoc    = 10*(sessionConf.peakLoc-1)+1; %upsampled peakLoc
 
     plxInfo.year  = sessionDateVec(1);
     plxInfo.month = sessionDateVec(2);
@@ -211,7 +217,7 @@ function PLXid = makePLXInfo(PLXfn,sessionConf,tetrodeChannels,dataLength)
     plxInfo.hour       = timeVector(4);
     plxInfo.minute     = timeVector(5);
     plxInfo.second     = 0;
-    plxInfo.waveFs     = sessionConf.Fs; % record the upsampled Fs as the waveform sampling frequency
+    plxInfo.waveFs     = Fs; % record the upsampled Fs as the waveform sampling frequency
     plxInfo.dataLength = dataLength;
 
     plxInfo.Trodalness     = length(tetrodeChannels); %Trodalness - 0,1 = single electrode, 2 = stereotrode, 4 = tetrode

@@ -1,7 +1,7 @@
 function threshold = getThreshold(threshGain,data)
 %% sliding window
 window = 1000; %samples
-dt = 1000;
+dt = 750;
 threshold = zeros(1,length(data));
 for i=window+1:dt:length(data)-window
    threshold(i:i+dt-1) = threshGain .* median((abs(data(i-window:i+window))./0.6745));
