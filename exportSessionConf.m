@@ -71,7 +71,8 @@ end
 
 sessionConf.deadTime = round(sessionConf.Fs/1000);
 %add nexPath(str pointing to combined.nex location) to sessionconf
-sessionConf.nexPath = fullfile(leventhalPaths.processed,'Processed',[sessionConf.sessionName '_combined.nex']);
+sessionConf.nexPath = fullfile(leventhalPaths.processed,...
+    [sessionConf.sessionName,'_finished'],[sessionConf.sessionName '.nex']);
 
 if exist('sessionConfPath','var')
     filename = ['session_conf_',sessionName,'.mat'];
