@@ -8,7 +8,6 @@ leventhalPaths.rawdata = fullfile(sessionConf.nasPath,subjectID,[subjectID,'-raw
 leventhalPaths.processed = fullfile(sessionConf.nasPath,subjectID,[subjectID,'-processed'],sessionConf.sessionName);
 leventhalPaths.graphs = fullfile(sessionConf.nasPath,subjectID,[subjectID,'-graphs'],sessionConf.sessionName);
 leventhalPaths.channels = fullfile(leventhalPaths.rawdata,sessionConf.sessionName);
-leventhalPaths.videos =  fullfile(sessionConf.nasPath,ratID,[ratID,'-videos'],sessionConf.sessionName);
 leventhalPaths.finished = fullfile(leventhalPaths.processed,[sessionConf.sessionName,'_finished']);
 
 
