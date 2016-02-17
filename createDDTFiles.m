@@ -2,7 +2,7 @@ function createDDTFiles(sessionConf)
 % [] handle 50um
 
 leventhalPaths = buildLeventhalPaths(sessionConf);
-fullSevFiles = getChFileMap(leventhalPaths.channels);
+fullSevFiles = getChFileMap(leventhalPaths.channels); %SLEEP
 validChannelMatrix = sessionConf.chMap(:,2:end).*sessionConf.validMasks;
 [b,a] = butter(4, [0.02 0.5]);
 
@@ -27,5 +27,5 @@ for ii=1:length(validChannelMatrix)
     end
     disp(['+ Writing DDT for ',mat2str(channelsToConvert)]);
     ddt_write_v(fullfile(leventhalPaths.processed,[sessionConf.sessionName,'_','T',num2str(ii),'_ch',mat2str(channelsToConvert),'.ddt']),...
-        4,length(sev),header.Fs,sevs/1000);
+        4,length(sev),header.Fs,sevs/1000); %SLEEP, processed/sleep
 end
