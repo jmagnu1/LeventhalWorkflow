@@ -1,3 +1,5 @@
+% run sql_createSessionsFromRaw('R0036');
+
 function showmeSEV(sessionConf,tetrodeNum,wireNum)
 
 leventhalPaths = buildLeventhalPaths(sessionConf);

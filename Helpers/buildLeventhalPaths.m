@@ -1,7 +1,7 @@
 function leventhalPaths = buildLeventhalPaths(sessionConf,varargin)
 
 leventhalPaths = {};
-subjectID = sessionConf.sessionName(1:5);
+subjectID = sessionConf.ratID;
 
 %create files within the path for rawdata, processed, graphs, and channels
 leventhalPaths.rawdata = fullfile(sessionConf.nasPath,subjectID,[subjectID,'-rawdata'],sessionConf.sessionName);
