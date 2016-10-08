@@ -4,7 +4,7 @@ function createDDTFiles(sessionConf)
 leventhalPaths = buildLeventhalPaths(sessionConf,{'processed'});
 fullSevFiles = getChFileMap(leventhalPaths.channels); %SLEEP
 validChannelMatrix = sessionConf.chMap(:,2:end).*sessionConf.validMasks;
-[b,a] = butter(4, [0.02 0.5]);
+[b,a] = butter(4, [0.02 0.5]); % high pass
 
 for ii=1:length(validChannelMatrix)
     if isempty(nonzeros(validChannelMatrix(ii,:)))
