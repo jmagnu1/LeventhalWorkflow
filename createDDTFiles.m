@@ -23,7 +23,7 @@ function createDDTFiles(sessionConf)
                 sevs(iCh,:) = sevFilt;
             end
             writePath = fullfile(sessionConf.leventhalPaths.processed,[sessionConf.sessionName,'_','T',num2str(ii),'_ch',mat2str(channelsToConvert),'.ddt']);
-            ddt_write_v(writePath,4,length(sev),header.Fs,sevs/1000);
+            ddt_write_v(writePath,4,length(sevFilt),header.Fs,sevs/1000);
         else
             sevs = [];
             for iCh=1:4
@@ -37,7 +37,7 @@ function createDDTFiles(sessionConf)
                 [sevFilt,header] = filterSev(sevFile);
                 sevs(1,:) = sevFilt;
                 writePath = fullfile(sessionConf.leventhalPaths.processed,[sessionConf.sessionName,'_','T',num2str(ii),'_ch',mat2str(singleWireChannels),'.ddt']);
-                ddt_write_v(writePath,1,length(sev),header.Fs,sevs/1000);
+                ddt_write_v(writePath,1,length(sevFilt),header.Fs,sevs/1000);
             end
         end
     end

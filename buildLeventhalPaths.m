@@ -19,8 +19,11 @@ for ii=1:numel(allFields)
         mkdir(thePath);
     end
 end
-
-leventhalPaths.nex = fullfile(leventhalPaths.finished,[sessionConf.sessionName '.nex']);
+nexPath = fullfile(leventhalPaths.finished,[sessionConf.sessionName '.nex']);
+leventhalPaths.nex = '';
+if exist(nexPath,'file')
+    leventhalPaths.nex = nexPath;
+end
 
 % % pass in makeFolders (ie. {'rawdata'})
 % if nargin == 2

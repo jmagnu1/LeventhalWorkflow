@@ -9,24 +9,27 @@ analysisConf.sessionConfs = {};
 dataDirs = dir2(fullfile(nasPath,ratID,[ratID,'-processed']));
 allNeurons = {};
 allSessionNames = {};
-sessionCount = 1;
+neuronCount = 1;
 for iDataDir=1:length(dataDirs)
     if ~dataDirs(iDataDir).isdir
         continue;
     end
     % requires network
     sessionConf = exportSessionConf(dataDirs(iDataDir).name,'nasPath',nasPath);
-    analysisConf.sessionConfs{sessionCount} = sessionConf;
+    if isempty(sessionConf.leventhalPaths.nex) % nex files uncompilled
+        continue;
+    end
     leventhalPaths = buildLeventhalPaths(sessionConf);
     [nvar, names, types] = nex_info(leventhalPaths.nex);
-    neuronNames = cellstr(deblank(names(types(:,1)==0,:)));
-    allNeurons(sessionCount) = neuronNames;
+    neuronNames = cellstr(deblank(names(types==0,:)));
+    allNeurons = {allNeurons{:} neuronNames{:}};
     for ii=1:length(neuronNames)
         allSessionNames = [allSessionNames;sessionConf.sessionName];
+        analysisConf.sessionConfs{neuronCount,1} = sessionConf;
+        neuronCount = neuronCount + 1;
     end
-    sessionCount = sessionCount + 1;
 end
-
+allNeurons = allNeurons';
 neuronIds = listdlg('PromptString','Select neurons:',...
                 'SelectionMode','multiple','ListSize',[250 500],...
                 'ListString',allNeurons);
