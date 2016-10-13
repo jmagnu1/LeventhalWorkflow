@@ -1,4 +1,14 @@
 function createDDTFiles(sessionConf)
+% 20161013: [Investigating whether or not sampling rate and general timing
+% is maintained across workflow]
+% I used this function to generate a DDT file based on a long
+% ephys recording where I turned on the PZ4 roughly 80 minutes into the
+% recording, creating a well defined "blip". Next I used a threshold to
+% identify the blip in Offline Sorter and exported the single timestamp to
+% a NEX file, and then compared that timestamp to the one I got from
+% plotting the original data: 4.095999975106679e-05 (seconds)
+% From this I can confidently say the discrepency is negligable and this
+% workflow is solid.
     validChannelMatrix = sessionConf.chMap(:,2:end).*sessionConf.validMasks;
 
     for ii=1:length(validChannelMatrix)
