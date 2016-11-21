@@ -9,6 +9,7 @@ analysisConf.sessionConfs = {};
 dataDirs = dir2(fullfile(nasPath,ratID,[ratID,'-processed']));
 allNeurons = {};
 allSessionNames = {};
+allSessionConfs = {};
 neuronCount = 1;
 for iDataDir=1:length(dataDirs)
     if ~dataDirs(iDataDir).isdir
@@ -25,7 +26,7 @@ for iDataDir=1:length(dataDirs)
     allNeurons = {allNeurons{:} neuronNames{:}};
     for ii=1:length(neuronNames)
         allSessionNames = [allSessionNames;sessionConf.sessionName];
-        analysisConf.sessionConfs{neuronCount,1} = sessionConf;
+        allSessionConfs{neuronCount,1} = sessionConf;
         neuronCount = neuronCount + 1;
     end
 end
@@ -36,3 +37,4 @@ neuronIds = listdlg('PromptString','Select neurons:',...
 
 analysisConf.neurons = allNeurons(neuronIds);
 analysisConf.sessionNames = allSessionNames(neuronIds);
+analysisConf.sessionConfs = allSessionConfs(neuronIds);

@@ -14,7 +14,7 @@ function check_dataCollection(nasPath,subjectID,varargin)
 
     display = false;
     disp(char(repmat(46,1,20)));
-    clc;
+
     for ii=1:length(folders)
         if strcmp(folders(ii).name,[subjectID,'_',sessionStart])
             display = true;
