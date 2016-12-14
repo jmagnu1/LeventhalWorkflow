@@ -6,7 +6,7 @@ analysisConf.nasPath = nasPath;
 analysisConf.sessionConfs = {};
 
 % get all data folders that exist
-dataDirs = dir2(fullfile(nasPath,ratID,[ratID,'-processed']));
+dataDirs = dir(fullfile(nasPath,ratID,[ratID,'-processed']));
 allNeurons = {};
 allSessionNames = {};
 allSessionConfs = {};
