@@ -6,7 +6,8 @@ analysisConf.nasPath = nasPath;
 analysisConf.sessionConfs = {};
 
 % get all data folders that exist
-dataDirs = dir(fullfile(nasPath,ratID,[ratID,'-processed']));
+% use dir2 to remove {'.','..','.DS_Store','._.DS_Store'}
+dataDirs = dir2(fullfile(nasPath,ratID,[ratID,'-processed']));
 allNeurons = {};
 allSessionNames = {};
 allSessionConfs = {};
