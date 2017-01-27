@@ -4,6 +4,7 @@ function sessionConf = exportSessionConf(sessionName,varargin)
 % INPUTS:
 %   sessionName = 'R0036_20150225a';
 %   varargin, saveDir: where you want this config file save
+% making a copy for v2
 
 sessionConf = struct;
 
