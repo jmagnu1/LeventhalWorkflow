@@ -1,4 +1,4 @@
-function sessionConf = exportSessionConf(sessionName,varargin)
+function sessionConf = exportSessionConf(sessions__name,varargin)
 % This function exports a configuration file for a session so
 % that processing can be offloaded to a non-networked machine.
 % INPUTS:
@@ -16,25 +16,28 @@ for iarg = 1 : 2 : nargin - 1
     end
 end
 
-sessionConf.sessionName = sessionName;
-[~,sessionConf.ratID] = sql_getSubjectFromSession(sessionName);
-chMap = sql_getChannelMap(sessionConf.ratID);
-sessionConf.chMap = chMap.chMap;
-sessionConf.tetrodeNames = chMap.tetNames;
+sessionConf.sessions__name = sessions__name;
+[sessionConf.subjects__id,sessionConf.subjects__name] = sql_getSubjectFromSession(sessions__name);
+eib_electrodes = sqlv2_getEibElectrodes(sessionConf.subjects__id);
+session_electrodes = sqlv2_getSessionElectrodes(sessionConf.sessions__name);
+
+% % chMap = sql_getChannelMap(sessionConf.subjects__name);
+% % sessionConf.chMap = chMap.chMap;
+% % sessionConf.tetrodeNames = chMap.tetNames;
 
 %Get tetrode validMasks, lfpChannels
-try
-    sessionConf.validMasks = sql_getAllTetChannels(sessionConf.sessionName);
-    sessionConf.lfpChannels = sql_getLFPChannels(sessionConf.sessionName);
-    sessionConf.singleWires = sql_getSingleWires(sessionConf.sessionName); 
-catch
-    disp('No tetrode session found: validMasks and lfpChannels not valid');
-end
+% % try
+% %     sessionConf.validMasks = sql_getAllTetChannels(sessionConf.sessions__name);
+% %     sessionConf.lfpChannels = sql_getLFPChannels(sessionConf.sessions__name);
+% %     sessionConf.singleWires = sql_getSingleWires(sessionConf.sessions__name); 
+% % catch
+% %     disp('No tetrode session found: validMasks and lfpChannels not valid');
+% % end
 
 if exist('nasPath','var')
     sessionConf.nasPath = nasPath;
 else
-    sessionConf.nasPath = sql_findNASpath(sessionConf.ratID);
+    sessionConf.nasPath = sql_findNASpath(sessionConf.subjects__name);
 end
 
 leventhalPaths = buildLeventhalPaths(sessionConf);
@@ -51,7 +54,7 @@ else
 end
 
 if exist('sessionConfPath','var')
-    filename = ['session_conf_',sessionName,'.mat'];
+    filename = ['session_conf_',sessions__name,'.mat'];
     filePath = fullfile(sessionConfPath,filename);
     save(filePath,'sessionConf');
     sessionConf.file = filePath;
