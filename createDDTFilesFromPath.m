@@ -1,12 +1,14 @@
 % recordingPath = '/Volumes/RecordingsLeventhal2/ChoiceTask/R0142/R0142-rawdata/R0142_20161216a/R0142_20161216a';
 
-function createDDTFilesFromPath(recordingPath,isSingleWire)
+function createDDTFilesFromPath(recordingPath,isSingleWire,Selection)
     % can handle multiple single wires but only one tetrode
     % for tetrode: select 4 channels at a time
     sevFiles = dir(fullfile(recordingPath,'*.sev'));
     sevFilenames = natsort({sevFiles(:).name}');
-    [Selection,ok] = listdlg('PromptString','Select SEV files:',...
-            'SelectionMode','multiple','ListSize',[800 500],'ListString',char(sevFilenames));
+    if ~exist('Selection','var')
+        [Selection,ok] = listdlg('PromptString','Select SEV files:',...
+            'SelectionMode','multiple','ListSize',[800 800],'ListString',char(sevFilenames));
+    end
     selectedFiles = {sevFilenames{Selection}}';
     
     sevs = [];
