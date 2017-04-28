@@ -35,11 +35,12 @@ for iSubjects = 1:numel(subjects)
         end
     end
     allNeurons = allNeurons';
-    neuronIds = listdlg('PromptString','Select neurons:',...
-                    'SelectionMode','multiple','ListSize',[500 700],...
-                    'ListString',allNeurons);
-
-    analysisConf.neurons = allNeurons(neuronIds);
-    analysisConf.sessionNames = allSessionNames(neuronIds);
-    analysisConf.sessionConfs = allSessionConfs(neuronIds);
 end
+
+ neuronIds = listdlg('PromptString','Select neurons:',...
+                'SelectionMode','multiple','ListSize',[500 700],...
+                'ListString',allNeurons);
+
+analysisConf.neurons = allNeurons(neuronIds);
+analysisConf.sessionNames = allSessionNames(neuronIds);
+analysisConf.sessionConfs = allSessionConfs(neuronIds);
