@@ -412,8 +412,8 @@ for iDir=1:numFolders
 %                 'BackgroundColor','white','fontsize',fontTitle);
         cd(graphFolder);
         figure(h_fig);
-        export_fig(graphName,'-pdf','-q101','-nocrop');
-%         saveas(gcf, textString{1}, 'pdf')
+%         export_fig(graphName,'-pdf','-q101','-painters','-nocrop');
+        saveas(gcf, textString{1}, 'pdf')
         close(h_fig)
         cd(parentFolder);
     end

@@ -1,4 +1,4 @@
-function analysisConf = exportAnalysisConfv2(subjects,nasPath)
+function analysisConf = exportAnalysisConfv3(subjects,nasPath)
 
 analysisConf = struct;
 analysisConf.subjects = subjects;
