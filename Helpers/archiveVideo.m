@@ -4,17 +4,24 @@ function archiveVideos = archiveVideo(d)
 archiveVideos = {};
 for iFile = 1:numel(d)
     tic;
-    reader = VideoReader(fullfile(d(iFile).folder,d(iFile).name));
-    archivePath = fullfile(fullfile(d(iFile).folder,['archive_',d(iFile).name]));
-    disp(['Archiving: ',archivePath]);
+    [~,name,ext] = fileparts(d(iFile).name);
+    filename = [name,ext];
+    reader = VideoReader(fullfile(d(iFile).folder,filename));
+    archivePath = fullfile(fullfile(d(iFile).folder,['archive_',filename]));
+    disp(['Archiving #',num2str(iFile),': ',filename]);
     writer = VideoWriter(archivePath,'Archival');
     open(writer);
+    iFrame = 0;
+    frameLimit = Inf; % for testing
     while hasFrame(reader)
+        iFrame = iFrame + 1;
         img = readFrame(reader);
         writeVideo(writer,img);
+            break;
+        end
     end
     
     close(writer);
-    archiveVideos{iFile} = archivePath;
+    archiveVideos{iFile} = [archivePath,'.mj2'];
     toc;
 end
