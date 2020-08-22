@@ -12,7 +12,7 @@ choiceRTdifficulty{8}  = 'choice standard';
 choiceRTdifficulty{9}  = 'choice advanced';
 choiceRTdifficulty{10} = 'testing';
 
-rootdir = fullfile(nasPath,'R00*/*/*/*.log');
+rootdir = fullfile(nasPath,'R0*/*/*/*.log');
 logFiles = rdir(rootdir);
 
 %remove old log files, could use regex
@@ -67,7 +67,7 @@ for ii=1:size(compiledDays,1)
     jj = jj + 1;
 end
 set(gca,'XTickLabel',choiceRTdifficulty,'FontSize',20);
-rotateXLabels(gca(),45);
+xtickangle(gca(),45);
 grid on;
 xlim([1 9]);
 legend(legendText,'Location','northwest');

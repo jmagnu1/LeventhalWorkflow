@@ -1,4 +1,4 @@
-function sessionSummary = analyze_choiceRTlogDataWeekly2(ratID, implantSide, varargin)
+function sessionSummary = analyze_choiceRTlogDataWeeklyPreAllocate(ratID, implantSide, varargin)
 %
 % USAGE: sessionSummary = analyze_choiceRTlogDataWeekly2(ratID, implantSide, varargin)
 %
@@ -33,7 +33,16 @@ function sessionSummary = analyze_choiceRTlogDataWeekly2(ratID, implantSide, var
 % 08/27/2014 - don't have to navigate to the parent folder first, requires
 %   user to specify the rat ID as an input argument
 
-%recordingDirectory = 'RecordingsLeventhal1';
+%recordingDirectory = 'RecordingsLeventhal1'; # As of 04/26/2020 this is
+%not correct; JM - I'm saving data in the SharedX folder. Use the
+%'ChoiceTask' folder in the X drive for topLevelDir (except - Max don't do
+%this, its a note for me and not you! Save a couple R0343 files in your own
+% computer for now so we can debug the preallocate errors).
+
+%Max - this file has a few hist to histogram errors hidden among the
+%preallocate errors. Feel free to use this file for hist to histogram when
+%you're done with the other file (main debug goal for this function is preallocate for
+%speed!) Don't worry about the 'unused' errors for now.
 
 topLevelDir = 'X:\data\ChoiceTask';
 
@@ -138,7 +147,7 @@ for iDir=1:numFolders
             logDataWeek.taskLevel=[int2str(logData.taskLevel)];
             logDataWeek.combined=[logDataWeek.date];
         
-        elseif count==5
+        elseif count==5 % Train rats 5 days/week? JM 20200605
            logDataWeek.combined=[logDataWeek.combined '-' logData.date];
            logDataWeek.taskLevel=[logDataWeek.taskLevel,', ',int2str(logData.taskLevel)];
            logDataWeek.date=[logDataWeek.date,', ',logData.date];
@@ -524,7 +533,7 @@ mls = sprintf('%s\n%s\n%s',A{1,1},A{1,2},A{1,3});
             saveas(gcf, textString{1}, 'pdf')
             cd(parentFolder);
             cd(direct(ii).name);
-       count=0;
+       =0;
        close all
       end
       cd(parentFolder);      

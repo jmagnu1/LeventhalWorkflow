@@ -1,4 +1,4 @@
-function sessionSummary = analyze_choiceRTlogDataDaily(~, implantSide, varargin)
+function sessionSummary = analyze_choiceRTlogDataDailyHISTOGRAM(~, implantSide, varargin)
 %
 % USAGE: sessionSummary = analyze_choiceRTlogDataDaily(ratID, implantSide)
 %
@@ -92,8 +92,8 @@ for iarg = 1 : 2 : nargin - 2
 end
 
 parentFolder = fullfile(topLevelDir, ...
-                        'R0379', ...
-                        ['R0379' '-rawdata']);
+                        'R0343', ...
+                        ['R0343' '-rawdata']);
 % if ismac
 %     % change the pc formatted 
 %     topLevelDir = fullfile('/Volumes',recordingDirectory,'ChoiceTask');
@@ -116,7 +116,7 @@ if ~exist(graphFolder, 'dir')
     mkdir(graphFolder);
 end
 
-direct=dir(['R0379' '*']);
+direct=dir(['R0343' '*']);
 
 %paper dimensions # centimeters units
 % X = 21.0;                  %# A3 paper size
@@ -136,7 +136,7 @@ numFolders = length(direct);
 sessionSummary = initSessionSummary();
 
 for iDir=1:numFolders %#ok<ALIGN>
-    ii = iDir + 3;
+%     ii = iDir + 3;
     ii = iDir;
     
     textString{1} = [direct(ii).name '_LogAnalysis.pdf'];
@@ -159,7 +159,7 @@ for iDir=1:numFolders %#ok<ALIGN>
 
 
     RTbins = 0.05 : 0.05 : 0.95;
-    MTbins = 0.05 : 0.05 : 0.95;
+    MTbins = 0.05 : 0.05 : 0.95; 
 
     dirs=dir(fullfile(pwd,'*.log'));
     numLogs = length(dirs);
@@ -179,9 +179,7 @@ for iDir=1:numFolders %#ok<ALIGN>
         otherwise      % skip if more than one .log files present
             cd(parentFolder);
             continue;
-    end
-
-
+    end   
     logData = readLogData(dirs(validLogIdx).name);
 
 %     if length(fieldnames(logData))>=27 && length(logData.Attempt)>20   % only analyze data from valid log files with > 20 attempts
@@ -305,24 +303,30 @@ for iDir=1:numFolders %#ok<ALIGN>
         legPos(4) = 2.5;
         set(h_leg, 'units',figUnits,'fontsize', 10, 'position',legPos);
 
+%Parse this section out as its own function?
+
+
         axes(h_axes(2,1));
-        set(gca,'FontSize',14)
+        hold on
+        set(gca, 'FontSize',14)
         sessionSummary.ipsiRT   = logData.RT(completeTargetIpsi);
         sessionSummary.contraRT = logData.RT(completeTargetContra);
         sessionSummary.allRT    = logData.RT(sessionSummary.complete);
-
-        ipsiHist = hist(sessionSummary.ipsiRT, RTbins);
-        contraHist = hist(sessionSummary.contraRT, RTbins);
-        allHist = hist(sessionSummary.allRT, RTbins); 
         
-        plot(RTbins, ipsiHist, 'color', 'm');
-        hold on
-        plot(RTbins, contraHist, 'color', 'b');
-        plot(RTbins, allHist, 'color', 'k');
-        title('completed RT','fontsize',fontFigure);
+        d = diff(RTbins)/2;
+        RTedges = [RTbins(1)-d(1), RTbins(1:end-1)+d, RTbins(end)+d(end)];
+        
+        ipsiHist = histogram(sessionSummary.ipsiRT, RTedges, 'DisplayStyle', 'stairs', 'EdgeColor', 'm');
+        contraHist = histogram(sessionSummary.contraRT, RTedges, 'DisplayStyle', 'stairs', 'EdgeColor', 'b');
+        allHist = histogram(sessionSummary.allRT, RTedges, 'DisplayStyle', 'stairs', 'EdgeColor', 'k'); 
+        
+        plot(RTedges, ipsiHist);
+        plot(RTedges, contraHist);
+        plot(RTedges, allHist);
+        title('completed RT','fontsize', fontFigure);
         h_leg = legend('Ipsi','Contra','All','Location','NorthEast');
         set(h_leg, 'fontsize',10);
-
+        hold off
 
         axes(h_axes(2,2));
         set(gca,'FontSize',14)
@@ -400,5 +404,5 @@ for iDir=1:numFolders %#ok<ALIGN>
         close(h_fig);
         cd(parentFolder);
     end
-    cd(parentFolder); 
+    cd(parentFolder);
 end
